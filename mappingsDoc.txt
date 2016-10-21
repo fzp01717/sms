@@ -1,0 +1,9 @@
+mapping pattern for:
+
+WebController: /web/packageName/*className/*functionName
+WebApi: /web-api/packageName/*className/*functionName
+Mobile: /mobile-api/packageName/*className/*functionName
+
+followed pattern: /packageName/className/functionName
+
+${userActionUr}

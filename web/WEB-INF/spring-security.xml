@@ -1,0 +1,63 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:context="http://www.springframework.org/schema/context"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-4.1.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder location="classpath*:AppProperties/rememberMe.properties"/>
+
+<http name="Web-Public" auto-config="true" pattern="/public/**" request-matcher="ant"  use-expressions="true">
+	<csrf  />
+	<headers defaults-disabled="true">
+
+		<frame-options policy="SAMEORIGIN"/>
+		<content-type-options  />
+		<cache-control  />
+		<xss-protection  block="true"/>
+	</headers>
+    <intercept-url pattern="/public/user/index" access="permitAll"/>
+	<intercept-url pattern="/public/user/login" access="permitAll"/>
+	<intercept-url pattern="/public/user/insert" access="permitAll"/>
+	<intercept-url pattern="/WebResources/" access="permitAll" />
+	<!--<intercept-url pattern="/**" access="hasRole('ROLE_USER')"/>-->
+	<!--<intercept-url pattern="/web/web-api/public/user/getUserList" access="hasRole('ROLE_ADMIN')"/>-->
+	<intercept-url pattern="/public/user/**" access="hasRole('ROLE_USER')"/>
+	<form-login login-processing-url="/public/user/login"
+				login-page="/public/user/login"
+				authentication-failure-url="/public/user/login?error"
+				default-target-url="/public/user/welcome"
+				username-parameter="userName"
+				password-parameter="password"
+
+
+	/>
+<logout logout-success-url="/public/user/login?logout"
+		delete-cookies="JSESSIONID,remember-me"
+		invalidate-session="true"
+		logout-url="/public/user/logoutAll"
+/>
+    <remember-me
+			services-ref="persistentTokenBasedRememberMeServices"
+			key="${rememberMe.key}"
+	/>
+</http>
+
+
+
+<!--<http name="WebApi" pattern="/web-api/**" create-session="stateless" use-expressions="true">
+<http-basic />
+	<intercept-url pattern="/web-api/public/**" access="hasRole('ROLE_USER')"/>
+</http>-->
+
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider user-service-ref="userServiceImpl">
+			<password-encoder ref="passwordEncoder"/>
+		</authentication-provider>
+	</authentication-manager>
+
+
+
+</beans:beans>

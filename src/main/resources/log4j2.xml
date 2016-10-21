@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--<Configuration status="DEBUG">
+
+    <Appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT"/>
+        <Socket name="LF5_SOCKET" host="localhost" port="4454" protocol="TCP" reconnectionDelay="5000"/>
+    </Appenders>
+
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="STDOUT" level="DEBUG"/>
+            <AppenderRef ref="LF5_SOCKET" level="DEBUG"/>
+        </Root>
+    </Loggers>
+
+</Configuration>-->
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="console-log" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd} [%t] %c{1} - %msg%n"/>
+        </Console>
+        <RollingFile name="trace-log" fileName="logs/sms/sms-trace.log"
+                     filePattern="logs/sms/sms-trace-%d{yyyy-MM-dd}.log">
+            <PatternLayout>
+                <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="error-log" fileName="logs/sms/sms-error.log"
+                     filePattern="logs/sms/sms-error-%d{yyyy-MM-dd}.log">
+            <PatternLayout>
+                <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.hibernate" additivity="false" level="info">
+            <appender-ref ref="console-log"/>
+        </Logger>
+        <Logger name="org.hibernate.type" additivity="false" level="trace">
+            <appender-ref ref="console-log"/>
+        </Logger>
+        <Logger name="org.springframework.security" additivity="false" level="trace">
+            <appender-ref ref="console-log"/>
+        </Logger>
+        <Logger name="org.springframework" additivity="false" level="trace">
+            <appender-ref ref="console-log"/>
+        </Logger>
+
+        <Logger name="com.farhad.SMS" level="debug" additivity="false">
+            <appender-ref ref="trace-log" level="debug"/>
+            <appender-ref ref="error-log" level="error"/>
+            <appender-ref ref="console-log" level="debug"/>
+        </Logger>
+        <Root level="info" additivity="false">
+            <AppenderRef ref="console-log"/>
+        </Root>
+    </Loggers>
+</Configuration>

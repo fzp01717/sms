@@ -1,0 +1,10 @@
+out/
+node_modules/
+target/
+.idea/workspace.xml
+.idea/vcs.xml
+classes/
+classes/*.class
+classes/*.xml
+classes
+target

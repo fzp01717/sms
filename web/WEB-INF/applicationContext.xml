@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <context:property-placeholder location="classpath*:AppProperties/jdbc.properties,classpath*:AppProperties/email.properties,classpath*:AppProperties/rememberMe.properties"/>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${jdbc.driverClass}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="connectionProperties">
+            <props>
+                <prop key="dialect">org.hibernate.dialect.MySQLDialect</prop>
+            </props>
+        </property>
+        <property name="username" value="${jdbc.userName}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <bean id="sessionFactoryBean" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" destroy-method="destroy">
+        <property name="packagesToScan" value="com.farhad.SMS.Model"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.use_sql_comments">true</prop>
+                <prop key="hibernate.connection.url">jdbc:mysql://localhost:3306/sms</prop>
+                <prop key="hibernate.connection.driver_class">com.mysql.jdbc.Driver</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactoryBean"/>
+    </bean>
+
+    <bean id="hibernetTemplate" class="org.springframework.orm.hibernate5.HibernateTemplate">
+        <property name="sessionFactory" ref="sessionFactoryBean"/>
+        <property name="checkWriteOperations" value="true"/>
+    </bean>
+
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>AppProperties.Validation</value>
+                <value>AppProperties.sqlQueryStrings</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Request Type Settings -->
+    <bean id="jsonConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+    <bean id="xmlConverter" class="org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter"/>
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <ref bean="jsonConverter"/>
+                <ref bean="xmlConverter"/>
+            </list>
+        </property>
+    </bean>
+
+
+    <!--                  Email Settings                         -->
+
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <!-- SMTP settings -->
+        <!-- <property name="host" value="SMTP_HOST" />
+         <property name="port" value="SMTP_PORT" />
+         <property name="username" value="USER_NAME" />
+         <property name="password" value="PASSWORD" />
+ -->
+        <property name="javaMailProperties">
+            <!-- additional properties specific to JavaMail -->
+            <props>
+                <prop key="mail.transport.protocol">smtp</prop>
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.starttls.enable">true</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+        <constructor-arg name="strength" value="11"/>
+    </bean>
+
+    <!-- Remember Me Logout Service -->
+
+    <bean class="org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl" id="jdbcTokenRepository">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="createTableOnStartup" value="false"/>
+    </bean>
+
+    <bean class="com.farhad.SMS.AppHandlerConfig.RememberMeLogoutHandlerServiceImpl" id="rememberMeLogoutHandlerService">
+        <constructor-arg name="key" value="${rememberMe.key}"/>
+        <constructor-arg name="tokenRepository" ref="jdbcTokenRepository"/>
+        <constructor-arg name="userDetailsService" ref="userServiceImpl"/>
+    </bean>
+
+    <bean class="org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices" id="persistentTokenBasedRememberMeServices">
+        <constructor-arg name="key" value="${rememberMe.key}"/>
+        <constructor-arg name="tokenRepository" ref="jdbcTokenRepository"/>
+        <constructor-arg name="userDetailsService" ref="userServiceImpl"/>
+        <property name="cookieName" value="${rememberMe.cookieName}"/>
+        <property name="parameter" value="${rememberMe.parameter}"/>
+        <property name="tokenValiditySeconds" value="${rememberMe.tokenValiditySeconds}"/>
+        <property name="alwaysRemember" value="true"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager" />
+    <context:component-scan base-package="com.farhad.SMS.Bean"/>
+
+
+</beans>
